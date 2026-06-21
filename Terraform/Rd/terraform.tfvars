@@ -1,0 +1,7 @@
+subscription_id     = "2dabdb82-fc8d-467c-b49d-cdaea961f162"
+location            = "southafricanorth"
+resource_group_name = "rg-rd-pharma"
+vm_name             = "vm-ds-pharma"
+vm_size             = "Standard_D2s_v3"
+admin_username      = "pharmaadmin"
+admin_password      = "PharmaLink@2025!"
