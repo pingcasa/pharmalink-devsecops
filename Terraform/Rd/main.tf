@@ -33,7 +33,7 @@ resource "azurerm_virtual_network" "vnet_rd" {
   resource_group_name = azurerm_resource_group.rg_rd.name
 }
 
-# Subnet
+# Subnet workloads
 resource "azurerm_subnet" "snet_rd" {
   name                 = "snet-rd-workloads"
   resource_group_name  = azurerm_resource_group.rg_rd.name
@@ -41,21 +41,53 @@ resource "azurerm_subnet" "snet_rd" {
   address_prefixes     = ["10.10.1.0/24"]
 }
 
-# Network Security Group
+# Subnet Bastion (nom fixe imposé par Azure)
+resource "azurerm_subnet" "snet_bastion" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.rg_rd.name
+  virtual_network_name = azurerm_virtual_network.vnet_rd.name
+  address_prefixes     = ["10.10.2.0/26"]
+}
+
+# NSG — SSH restreint GitHub Actions + accès Bastion
 resource "azurerm_network_security_group" "nsg_rd" {
   name                = "nsg-rd-pharma"
   location            = azurerm_resource_group.rg_rd.location
   resource_group_name = azurerm_resource_group.rg_rd.name
 
   security_rule {
-    name                       = "AllowSSH"
+    name                       = "AllowSSHFromGitHubActions"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "*"
+    source_address_prefix      = "4.148.0.0/16"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowBastionInbound"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["22", "3389"]
+    source_address_prefix      = "10.10.2.0/26"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "DenySSHFromInternet"
+    priority                   = 300
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "Internet"
     destination_address_prefix = "*"
   }
 
@@ -72,19 +104,41 @@ resource "azurerm_network_security_group" "nsg_rd" {
   }
 }
 
-# Association NSG -> Subnet
+# Association NSG -> Subnet workloads
 resource "azurerm_subnet_network_security_group_association" "nsg_assoc" {
   subnet_id                 = azurerm_subnet.snet_rd.id
   network_security_group_id = azurerm_network_security_group.nsg_rd.id
 }
 
-# IP Publique
+# IP Publique VM (pour Ansible via GitHub Actions)
 resource "azurerm_public_ip" "pip_rd" {
   name                = "pip-vm-ds-pharma"
   location            = azurerm_resource_group.rg_rd.location
   resource_group_name = azurerm_resource_group.rg_rd.name
   allocation_method   = "Static"
   sku                 = "Standard"
+}
+
+# IP Publique Bastion
+resource "azurerm_public_ip" "pip_bastion" {
+  name                = "pip-bastion-pharma"
+  location            = azurerm_resource_group.rg_rd.location
+  resource_group_name = azurerm_resource_group.rg_rd.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+# Azure Bastion
+resource "azurerm_bastion_host" "bastion_rd" {
+  name                = "bastion-rd-pharma"
+  location            = azurerm_resource_group.rg_rd.location
+  resource_group_name = azurerm_resource_group.rg_rd.name
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.snet_bastion.id
+    public_ip_address_id = azurerm_public_ip.pip_bastion.id
+  }
 }
 
 # Network Interface
