@@ -58,7 +58,7 @@ jobs:
 
 
       - name: Terraform Init
-        run: erraform init -upgrade -reconfigure
+        run: terraform init -upgrade -reconfigure
         working-directory: Terraform/Rd
 
       - name: Terraform Validate
