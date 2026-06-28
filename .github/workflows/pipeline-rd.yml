@@ -53,8 +53,8 @@ jobs:
         run: rm -rf .terraform
         working-directory: Terraform/Rd
         
-        - name: Create plugin cache directory
-          run: mkdir -p /tmp/.terraform.d/plugin-cache
+      - name: Create plugin cache directory
+        run: mkdir -p /tmp/.terraform.d/plugin-cache
 
 
       - name: Terraform Init
