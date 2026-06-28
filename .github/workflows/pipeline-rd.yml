@@ -32,7 +32,12 @@ jobs:
     needs: security-scan
 
     env:
-            TF_PLUGIN_CACHE_DIR: /tmp/.terraform.d/plugin-cache
+            
+       TF_PLUGIN_CACHE_DIR: /tmp/.terraform.d/plugin-cache
+       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
     steps:
       - name: Checkout code
@@ -43,10 +48,7 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
 
       - name: Clean Terraform cache
         run: rm -rf .terraform
