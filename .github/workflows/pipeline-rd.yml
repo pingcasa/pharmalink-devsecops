@@ -33,6 +33,7 @@ jobs:
 
     env:
       TF_INSECURE_SKIP_PROVIDER_VERIFY: 1
+      TF_PLUGIN_CACHE_DIR: /tmp/.terraform.d/plugin-cache
 
     steps:
       - name: Checkout code
@@ -53,7 +54,7 @@ jobs:
         working-directory: Terraform/Rd
 
       - name: Terraform Init
-        run: terraform init -upgrade -reconfigure
+        run: terraform init -upgrade -reconfigure -verify-plugins=false
         working-directory: Terraform/Rd
 
       - name: Terraform Validate
