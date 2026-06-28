@@ -5,9 +5,31 @@ on:
     branches: [main]
 
 jobs:
-  terraform:
-    name: Terraform - Provisioning Azure
+
+  # 1. SECURITY SCAN
+  security-scan:
+    name: Security Scan
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Safety
+        run: pip install safety
+
+      - name: Run Safety (SCA)
+        run: safety check || true
+
+      - name: Run Semgrep (SAST)
+        uses: returntocorp/semgrep-action@v1
+        continue-on-error: true
+
+  # 2. TERRAFORM PROVISIONING
+  terraform:
+    name: Terraform - Provision Azure
+    runs-on: ubuntu-latest
+    needs: security-scan
 
     steps:
       - name: Checkout code
@@ -27,16 +49,31 @@ jobs:
         run: terraform init
         working-directory: terraform/rd
 
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: terraform/rd
+
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=tfplan
         working-directory: terraform/rd
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
         working-directory: terraform/rd
 
+      - name: Get VM Public IP
+        run: terraform output -raw vm_public_ip > vm_ip.txt
+        working-directory: terraform/rd
+
+      - name: Upload VM IP
+        uses: actions/upload-artifact@v3
+        with:
+          name: vm-ip
+          path: terraform/rd/vm_ip.txt
+
+  # 3. ANSIBLE CONFIGURATION
   ansible:
-    name: Ansible - Configuration VM
+    name: Ansible - Configure VM
     runs-on: ubuntu-latest
     needs: terraform
 
@@ -47,7 +84,22 @@ jobs:
       - name: Install Ansible
         run: pip install ansible
 
-      - name: Run Ansible Playbook
+      - name: Download VM IP
+        uses: actions/download-artifact@v3
+        with:
+          name: vm-ip
+
+      - name: Setup SSH Key
         run: |
-          ansible-playbook -i inventory.ini configure-ds.yml
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Generate inventory
+        run: |
+          echo "[vm]" > inventory.ini
+          echo "$(cat vm_ip.txt) ansible_user=pharmaadmin ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
+
+      - name: Run Ansible Playbook
+        run: ansible-playbook -i inventory.ini configure-ds.yml
         working-directory: ansible
