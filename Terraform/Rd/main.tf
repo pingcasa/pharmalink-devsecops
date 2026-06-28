@@ -1,6 +1,6 @@
 terraform {
   backend "azurerm" {
-    resource_group_name  = "rg-terraform-state"
+    resource_group_name  = "TfState"
     storage_account_name = "tfstatefile2026"
     container_name       = "tfstate"
     key                  = "rd-pipeline/terraform.tfstate"
