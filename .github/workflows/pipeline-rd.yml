@@ -32,8 +32,7 @@ jobs:
     needs: security-scan
 
     env:
-      TF_INSECURE_SKIP_PROVIDER_VERIFY: 1
-      TF_PLUGIN_CACHE_DIR: /tmp/.terraform.d/plugin-cache
+            TF_PLUGIN_CACHE_DIR: /tmp/.terraform.d/plugin-cache
 
     steps:
       - name: Checkout code
@@ -42,7 +41,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.6.0"
+          terraform_version: "1.9.8"
 
       - name: Azure Login
         uses: azure/login@v1
