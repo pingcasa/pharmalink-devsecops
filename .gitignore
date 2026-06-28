@@ -1,0 +1,16 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Ignore providers téléchargés
+**/.terraform/*
+
+# SSH keys
+*.pem
+*.key
+*.pub
+
+# OS
+.DS_Store
+Thumbs.db
