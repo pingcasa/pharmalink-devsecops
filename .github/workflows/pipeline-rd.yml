@@ -47,29 +47,29 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        working-directory: terraform/rd
+        working-directory: Terraform/Rd
 
       - name: Terraform Validate
         run: terraform validate
-        working-directory: terraform/rd
+        working-directory: Terraform/Rd
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
-        working-directory: terraform/rd
+        working-directory: Terraform/Rd
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-        working-directory: terraform/rd
+        working-directory: Terraform/Rd
 
       - name: Get VM Public IP
         run: terraform output -raw vm_public_ip > vm_ip.txt
-        working-directory: terraform/rd
+        working-directory: Terraform/Rd
 
       - name: Upload VM IP
         uses: actions/upload-artifact@v4
         with:
           name: vm-ip
-          path: terraform/rd/vm_ip.txt
+          path: Terraform/Rd/vm_ip.txt
 
   # 3. ANSIBLE CONFIGURATION
   ansible:
