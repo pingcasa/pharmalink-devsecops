@@ -1,1 +1,47 @@
+name: Pipeline 2 - Digital Factory
 
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to ACR
+        run: |
+          az acr login --name acrehtp2026
+
+      - name: Build Docker Image
+        run: |
+          docker build -t acrehtp2026.azurecr.io/app:${{ github.sha }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push acrehtp2026.azurecr.io/app:${{ github.sha }}
+
+      - name: Update Web App
+        run: |
+          az webapp config container set \
+            --name app-df-ehttp-emc \
+            --resource-group rg-digital-factory \
+            --container-image-name acrehtp2026.azurecr.io/app:${{ github.sha }} \
+            --container-registry-url https://acrehtp2026.azurecr.io
+
+      - name: Restart Web App
+        run: |
+          az webapp restart \
+            --resource-group rg-digital-factory \
+            --name app-df-ehttp-emc
