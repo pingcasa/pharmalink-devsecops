@@ -3,20 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CarRent - Location de Voitures</title>
+
+<title>PharmaLink Maroc</title>
 
 <style>
+
 body{
-    font-family: Arial, sans-serif;
     margin:0;
-    background:#f4f6f9;
+    font-family:Segoe UI, Arial, sans-serif;
+    background:#f5f7fa;
 }
 
 header{
-    background:#1e3a8a;
+    background:#005792;
     color:white;
-    text-align:center;
     padding:20px;
+    text-align:center;
+}
+
+nav{
+    background:#003f5c;
+    padding:10px;
+    color:white;
 }
 
 .container{
@@ -24,7 +32,7 @@ header{
     margin:auto;
 }
 
-.cars{
+.cards{
     display:flex;
     gap:20px;
     flex-wrap:wrap;
@@ -32,185 +40,209 @@ header{
 }
 
 .card{
+    flex:1;
+    min-width:250px;
     background:white;
-    width:300px;
-    border-radius:10px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
-    overflow:hidden;
-}
-
-.card img{
-    width:100%;
-    height:180px;
-    object-fit:cover;
-}
-
-.card-content{
-    padding:15px;
-}
-
-button{
-    background:#2563eb;
-    color:white;
-    border:none;
-    padding:10px 15px;
-    cursor:pointer;
-    border-radius:5px;
-}
-
-button:hover{
-    background:#1e40af;
-}
-
-.form-section{
-    background:white;
-    margin-top:30px;
     padding:20px;
     border-radius:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.15);
 }
 
-input{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
+.card h3{
+    color:#005792;
 }
 
 table{
     width:100%;
-    margin-top:20px;
     border-collapse:collapse;
+    margin-top:20px;
+    background:white;
 }
 
-table th,
-table td{
+table th{
+    background:#005792;
+    color:white;
+}
+
+table td,table th{
     border:1px solid #ddd;
     padding:10px;
 }
 
-table th{
-    background:#2563eb;
+button{
+    background:#0078d4;
     color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:5px;
+    cursor:pointer;
 }
+
+button:hover{
+    background:#005a9e;
+}
+
+#loginPage{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#005792;
+}
+
+.login-box{
+    background:white;
+    padding:30px;
+    width:350px;
+    border-radius:15px;
+}
+
+.login-box input{
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+}
+
 </style>
 </head>
 
 <body>
 
-<header>
-    <h1>🚗 CarRent</h1>
-    <p>Application de Location de Voitures</p>
-</header>
+<div id="loginPage">
 
-<div class="container">
+    <div class="login-box">
 
-    <h2>Voitures Disponibles</h2>
+        <h2>PharmaLink Maroc</h2>
 
-    <div class="cars">
+        <input type="text" id="user" placeholder="Utilisateur">
 
-        <div class="card">
-            https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800
-            <div class="card-content">
-                <h3>Renault Clio</h3>
-                <p>Prix : 350 DH / jour</p>
-                <button onclick="selectCar('Renault Clio')">Réserver</button>
-            </div>
-        </div>
+        <input type="password" id="pass" placeholder="Mot de passe">
 
-        <div class="card">
-            https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800" alt="">
-            <div class="card-content">
-                <h3>Dacia Duster</h3>
-                <p>Prix : 500 DH / jour</p>
-                <button onclick="selectCar('Dacia Duster')">Réserver</button>
-            </div>
-        </div>
+        <button onclick="login()">Connexion</button>
 
-        <div class="card">
-            https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800" alt="">
-            <div class="card-content">
-                <h3>Peugeot 208</h3>
-                <p>Prix : 400 DH / jour</p>
-                <button onclick="selectCar('Peugeot 208')">Réserver</button>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="form-section">
-
-        <h2>Réservation</h2>
-
-        <form id="reservationForm">
-
-            <input type="text" id="nom" placeholder="Nom du client" required>
-
-            <input type="email" id="email" placeholder="Email" required>
-
-            <input type="text" id="voiture" placeholder="Voiture choisie" readonly>
-
-            <input type="date" id="date" required>
-
-            <button type="submit">Confirmer la réservation</button>
-
-        </form>
-
-    </div>
-
-    <div class="form-section">
-
-        <h2>Réservations</h2>
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Client</th>
-                    <th>Email</th>
-                    <th>Voiture</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-
-            <tbody id="reservationsTable"></tbody>
-
-        </table>
+        <p id="msg" style="color:red"></p>
 
     </div>
 
 </div>
 
+<div id="dashboard" style="display:none;">
+
+<header>
+
+<h1>PharmaLink Maroc</h1>
+
+<p>Plateforme de Gestion Pharmaceutique</p>
+
+</header>
+
+<nav>
+
+Bienvenue Administrateur
+
+<button style="float:right" onclick="logout()">
+Déconnexion
+</button>
+
+</nav>
+
+<div class="container">
+
+<div class="cards">
+
+<div class="card">
+<h3>Médicaments</h3>
+<h2>120</h2>
+<p>Produits enregistrés</p>
+</div>
+
+<div class="card">
+<h3>Stocks</h3>
+<h2>18 500</h2>
+<p>Unités disponibles</p>
+</div>
+
+<div class="card">
+<h3>Sites</h3>
+<h2>3</h2>
+<p>Casablanca, Rabat, Fès</p>
+</div>
+
+</div>
+
+<h2>Catalogue Pharmaceutique</h2>
+
+<table>
+
+<tr>
+<th>Code</th>
+<th>Médicament</th>
+<th>Catégorie</th>
+<th>Stock</th>
+</tr>
+
+<tr>
+<td>MED001</td>
+<td>Paracétamol 500mg</td>
+<td>Antalgique</td>
+<td>4500</td>
+</tr>
+
+<tr>
+<td>MED002</td>
+<td>Amoxicilline</td>
+<td>Antibiotique</td>
+<td>2750</td>
+</tr>
+
+<tr>
+<td>MED003</td>
+<td>Metformine</td>
+<td>Diabète</td>
+<td>3800</td>
+</tr>
+
+<tr>
+<td>MED004</td>
+<td>Amlodipine</td>
+<td>Cardiologie</td>
+<td>2200</td>
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
 <script>
 
-function selectCar(car){
-    document.getElementById("voiture").value = car;
+function login(){
+
+let user =
+document.getElementById("user").value;
+
+let pass =
+document.getElementById("pass").value;
+
+if(user==="admin" && pass==="admin123")
+{
+    document.getElementById("loginPage")
+        .style.display="none";
+
+    document.getElementById("dashboard")
+        .style.display="block";
+}
+else
+{
+    document.getElementById("msg")
+        .innerText="Identifiants incorrects";
+}
 }
 
-document.getElementById("reservationForm")
-.addEventListener("submit", function(e){
-
-    e.preventDefault();
-
-    const nom = document.getElementById("nom").value;
-    const email = document.getElementById("email").value;
-    const voiture = document.getElementById("voiture").value;
-    const date = document.getElementById("date").value;
-
-    const row = `
-        <tr>
-            <td>${nom}</td>
-            <td>${email}</td>
-            <td>${voiture}</td>
-            <td>${date}</td>
-        </tr>
-    `;
-
-    document.getElementById("reservationsTable")
-        .innerHTML += row;
-
-    alert("Réservation enregistrée avec succès !");
-
-    document.getElementById("reservationForm").reset();
-});
+function logout(){
+location.reload();
+}
 
 </script>
 
