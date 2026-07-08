@@ -1,5 +1,12 @@
 name: Pipeline 2 - Digital Factory
 
+  uses: aquasecurity/trivy-action@master
+  with:
+    image-ref: pharmalink:latest
+    format: table
+    exit-code: '1'
+    severity: CRITI
+
 on:
   push:
     branches:
