@@ -191,3 +191,58 @@ resource "azurerm_linux_virtual_machine" "vm_datascience" {
     environment = "simulation"
   }
 }
+# Récupération du contexte client (tenant_id, object_id)
+data "azurerm_client_config" "current" {}
+
+# Azure Key Vault — secrets R&D
+resource "azurerm_key_vault" "kv_rd" {
+  name                       = "kv-pharma-devsecops"
+  location                   = azurerm_resource_group.rg_rd.location
+  resource_group_name        = azurerm_resource_group.rg_rd.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+
+  tags = {
+    projet      = "PharmaLink-PFE"
+    pipeline    = "R&D"
+    compliance  = "gmp"
+  }
+}
+
+# Politique d'accès pour le Service Principal du pipeline
+resource "azurerm_key_vault_access_policy" "pipeline_sp" {
+  key_vault_id = azurerm_key_vault.kv_rd.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  secret_permissions = ["Get", "List", "Set", "Delete", "Purge", "Recover"]
+}
+
+# Politique d'accès en lecture seule pour la Managed Identity de la VM
+resource "azurerm_key_vault_access_policy" "vm_mi" {
+  key_vault_id = azurerm_key_vault.kv_rd.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_linux_virtual_machine.vm_datascience.identity[0].principal_id
+
+  secret_permissions = ["Get", "List"]
+}
+
+# Secret — mot de passe admin de la VM
+resource "azurerm_key_vault_secret" "vm_admin_password" {
+  name         = "vm-admin-password"
+  value        = var.admin_password
+  key_vault_id = azurerm_key_vault.kv_rd.id
+
+  depends_on = [azurerm_key_vault_access_policy.pipeline_sp]
+}
+
+# Secret — nom d'utilisateur admin
+resource "azurerm_key_vault_secret" "vm_admin_username" {
+  name         = "vm-admin-username"
+  value        = var.admin_username
+  key_vault_id = azurerm_key_vault.kv_rd.id
+
+  depends_on = [azurerm_key_vault_access_policy.pipeline_sp]
+}
