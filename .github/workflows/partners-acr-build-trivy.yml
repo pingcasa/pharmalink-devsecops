@@ -15,9 +15,17 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Set correct subscription
+        run: az account set --subscription 2dabdb82-fc8d-467c-b49d-cdaea961f162
+
+      - name: Verify ACR exists
+        run: az acr list --query "[].{name:name, loginServer:loginServer}" -o table
+
       - name: Build image in ACR
         run: |
-          az acr build --registry partnersacr --image test/partner-image:latest --file Dockerfile.test .
+          az acr build --registry partnersacr \
+                       --image test/partner-image:latest \
+                       --file Dockerfile.test .
 
       - name: Install Trivy
         run: |
