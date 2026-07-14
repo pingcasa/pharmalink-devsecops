@@ -1,0 +1,38 @@
+name: Partners ACR Build and Trivy Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build image in ACR
+        run: |
+          az acr build --registry partnersacr --image test/partner-image:latest --file Dockerfile.test .
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install -y trivy
+
+      - name: Pull image from ACR
+        run: |
+          az acr login --name partnersacr
+          docker pull partnersacr.azurecr.io/test/partner-image:latest
+
+      - name: Trivy scan image and fail on HIGH or CRITICAL
+        run: |
+          trivy image --exit-code 1 --severity HIGH,CRITICAL partnersacr.azurecr.io/test/partner-image:latest
