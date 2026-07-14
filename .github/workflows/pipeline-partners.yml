@@ -1,0 +1,24 @@
+name: Partners Pipeline
+on:
+  workflow_dispatch:
+
+jobs:
+  validate-image:
+    runs-on: ubuntu-latest
+    env:
+      ACR: ${{ secrets.ACR_LOGIN_SERVER }}
+      IMAGE: ${{ secrets.ACR_LOGIN_SERVER }}/test/partner-image:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Docker login to ACR
+        run: echo "${{ secrets.ACR_PASSWORD }}" | docker login ${{ secrets.ACR_LOGIN_SERVER }} -u ${{ secrets.ACR_USERNAME }} --password-stdin
+
+      - name: Pull partner image
+        run: docker pull ${{ env.IMAGE }}
