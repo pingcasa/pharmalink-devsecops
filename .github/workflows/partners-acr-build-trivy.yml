@@ -1,45 +1,55 @@
-name: Partners ACR Build and Trivy Scan
+name: Partners Pipeline
 
 on:
   workflow_dispatch:
+    inputs:
+      image_name:
+        description: 'Image Docker du partenaire (ex: alpine:3.18)'
+        required: true
+        type: string
+      partner_name:
+        description: 'Nom du partenaire fournisseur'
+        required: true
+        type: string
 
 jobs:
-  build-and-scan:
+  validate-image:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to Azure
-        uses: azure/login@v2
+      - name: Pull partner image
+        run: docker pull ${{ github.event.inputs.image_name }}
+
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@master
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          image-ref: ${{ github.event.inputs.image_name }}
+          format: json
+          output: trivy-results.json
+          exit-code: '0'
 
-      - name: Set correct subscription
-        run: az account set --subscription 2dabdb82-fc8d-467c-b49d-cdaea961f162
-
-      - name: Login to ACR
-        run: az acr login --name partnersacr
-
-      - name: Build image
+      - name: Install Grype
         run: |
-          docker build -t partnersacr.azurecr.io/test/partner-image:latest \
-                       -f Dockerfile.test .
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Push image to ACR
+      - name: Grype scan
         run: |
-          docker push partnersacr.azurecr.io/test/partner-image:latest
+          grype ${{ github.event.inputs.image_name }} -o json --file grype-results.json
 
-      - name: Install Trivy
+      - name: Consolidate reports
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update -y
-          sudo apt-get install -y trivy
+          python3 scripts/consolidate_reports.py \
+            --trivy trivy-results.json \
+            --grype grype-results.json \
+            --image "${{ github.event.inputs.image_name }}" \
+            --partner "${{ github.event.inputs.partner_name }}"
 
-      - name: Trivy scan - fail on HIGH or CRITICAL
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL \
-          partnersacr.azurecr.io/test/partner-image:latest
+      - name: Upload scan report
+        uses: actions/upload-artifact@v4
+        with:
+          name: partner-scan-report
+          path: reports/scan-report.json
+          retention-days: 90
