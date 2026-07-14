@@ -18,14 +18,17 @@ jobs:
       - name: Set correct subscription
         run: az account set --subscription 2dabdb82-fc8d-467c-b49d-cdaea961f162
 
-      - name: Verify ACR exists
-        run: az acr list --query "[].{name:name, loginServer:loginServer}" -o table
+      - name: Login to ACR
+        run: az acr login --name partnersacr
 
-      - name: Build image in ACR
+      - name: Build image
         run: |
-          az acr build --registry partnersacr \
-                       --image test/partner-image:latest \
-                       --file Dockerfile.test .
+          docker build -t partnersacr.azurecr.io/test/partner-image:latest \
+                       -f Dockerfile.test .
+
+      - name: Push image to ACR
+        run: |
+          docker push partnersacr.azurecr.io/test/partner-image:latest
 
       - name: Install Trivy
         run: |
@@ -36,11 +39,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y trivy
 
-      - name: Pull image from ACR
+      - name: Trivy scan - fail on HIGH or CRITICAL
         run: |
-          az acr login --name partnersacr
-          docker pull partnersacr.azurecr.io/test/partner-image:latest
-
-      - name: Trivy scan image and fail on HIGH or CRITICAL
-        run: |
-          trivy image --exit-code 1 --severity HIGH,CRITICAL partnersacr.azurecr.io/test/partner-image:latest
+          trivy image --exit-code 1 --severity HIGH,CRITICAL \
+          partnersacr.azurecr.io/test/partner-image:latest
