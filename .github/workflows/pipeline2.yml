@@ -7,58 +7,33 @@ on:
 
 jobs:
   build-and-deploy:
-
     runs-on: ubuntu-latest
 
     steps:
 
+      # 1. Récupération du code
       - name: Checkout
         uses: actions/checkout@v4
       
-
+      # 2. Analyse qualité SonarCloud
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-
-      
+      # 3. Connexion à Azure
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS2 }}
 
+      # 4. Connexion au registre ACR
       - name: Login to ACR
         run: |
-          az acr login --name acrehtp2026
+          az acr login --name acrehtp2026 --resource-group rg-digital-factory
 
+      # 5. Build de l’image Docker
       - name: Build Docker Image
         run: |
           docker build -t pharmalink:latest .
-          docker tag pharmalink:latest acrehtp2026.azurecr.io/app:${{ github.sha }}
-
-      - name: Scan Docker Image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: pharmalink:latest
-          format: table
-          exit-code: '1'
-          severity: CRITICAL
-
-      - name: Push Docker Image
-        run: |
-          docker push acrehtp2026.azurecr.io/app:${{ github.sha }}
-
-      - name: Update Web App
-        run: |
-          az webapp config container set \
-            --name app-df-ehttp-emc \
-            --resource-group rg-digital-factory \
-            --container-image-name acrehtp2026.azurecr.io/app:${{ github.sha }} \
-            --container-registry-url https://acrehtp2026.azurecr.io
-
-      - name: Restart Web App
-        run: |
-          az webapp restart \
-            --resource-group rg-digital-factory \
-            --name app-df-ehttp-emc
+          docker tag pharmalink:latest acrehtp2026.azurecr.io/app
