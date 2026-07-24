@@ -38,8 +38,7 @@ jobs:
         run: |
           docker build -t pharmalink:latest .
           docker tag pharmalink:latest acrehtp2026.azurecr.io/app:${{ github.sha }}
-
-          
+         
       - name: Scan Docker Image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
