@@ -32,6 +32,7 @@ jobs:
         run: |
           az acr login --name acrehtp2026
           az acr login --name acrehtp2026 --resource-group rg-digital-factory
+          
       # 5. Build de l’image Docker
       - name: Build Docker Image
         run: |
