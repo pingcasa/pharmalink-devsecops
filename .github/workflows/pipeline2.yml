@@ -35,8 +35,11 @@ jobs:
       # 5. Build de l’image Docker
       - name: Build Docker Image
         run: |
-          docker build -t pharmalink:latest .
-          docker tag pharmalink:latest acrehtp2026.azurecr.io/app
+          docker build -t acrehtp2026.azurecr.io/app:${{ github.sha }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push acrehtp2026.azurecr.io/app:${{ github.sha }}
           
       # 6. update webapp
       - name: Update Web App
