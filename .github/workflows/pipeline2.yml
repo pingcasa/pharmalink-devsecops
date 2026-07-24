@@ -37,3 +37,20 @@ jobs:
         run: |
           docker build -t pharmalink:latest .
           docker tag pharmalink:latest acrehtp2026.azurecr.io/app
+          
+      # 6. update webapp
+      - name: Update Web App
+        run: |
+          az webapp config container set \
+            --name app-df-ehttp-emc \
+            --resource-group rg-digital-factory \
+            --container-image-name acrehtp2026.azurecr.io/app:${{ github.sha }} \
+            --container-registry-url https://acrehtp2026.azurecr.io
+
+      # 7. Restart Webapp
+      
+      - name: Restart Web App
+        run: |
+          az webapp restart \
+            --resource-group rg-digital-factory \
+            --name app-df-ehttp-emc
