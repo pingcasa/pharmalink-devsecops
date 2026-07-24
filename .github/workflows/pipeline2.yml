@@ -19,7 +19,9 @@ jobs:
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       
       # 3. Connexion à Azure
       - name: Azure Login
@@ -32,26 +34,21 @@ jobs:
         run: |
           az acr login --name acrehtp2026
           az acr login --name acrehtp2026 --resource-group rg-digital-factory
-          
       # 5. Build de l’image Docker
       - name: Build Docker Image
         run: |
           docker build -t pharmalink:latest .
           docker tag pharmalink:latest acrehtp2026.azurecr.io/app:${{ github.sha }}
-         
       - name: Scan Docker Image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-           image-ref: pharmalink:latest
-           format: table
+          image-ref: pharmalink:latest
+          format: table
           exit-code: '1'
-            severity: CRITICAL 
-          
+          severity: CRITICAL
       - name: Push Docker Image
         run: |
           docker push acrehtp2026.azurecr.io/app:${{ github.sha }}
-
-          
       - name: Update Web App
         run: |
           az webapp config container set \
@@ -59,14 +56,9 @@ jobs:
             --resource-group rg-digital-factory \
             --container-image-name acrehtp2026.azurecr.io/app:${{ github.sha }} \
             --container-registry-url https://acrehtp2026.azurecr.io
-
-            
       - name: Restart Web App
         run: |
           az webapp restart \
             --resource-group rg-digital-factory \
             --name app-df-ehttp-emc
           docker tag pharmalink:latest acrehtp2026.azurecr.io/app
-          az webapp restart \
-            --resource-group rg-digital-factory \
-            --name app-df-ehttp-emc
