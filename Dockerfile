@@ -1,4 +1,4 @@
-FROM python:3.13.14
+FROM nginx:alpine
 
 COPY index.html /usr/share/nginx/html/index.html
 
