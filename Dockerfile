@@ -1,4 +1,4 @@
-FROM python:3.14
+FROM python:3.14-slim
 
 COPY index.html /usr/share/nginx/html/index.html
 
