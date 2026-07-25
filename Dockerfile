@@ -20,8 +20,9 @@ RUN useradd -m appuser
 USER appuser
 
 # Copier les dépendances et le code
-COPY --from=builder /usr/local /usr/local
-COPY . .
+COPY index.html /usr/share/nginx/html/index.html
 
 # Commande de démarrage
 CMD ["python", "app.py"]
+
+EXPOSE 80
