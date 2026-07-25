@@ -10,10 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier les requirements et installer
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Étape 2 : Runtime (image finale plus légère)
 FROM python:3.12-slim
 
